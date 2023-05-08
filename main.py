@@ -8,6 +8,7 @@ from notification import notify
 
 # user_input.input_data()
 print(const.DATE)
+print(const.MOBILE)
 
 while True:
     bot = Booking()
@@ -31,7 +32,7 @@ while True:
         bot.select_date_and_class(const.DATE)
         bot.search_trains()
         booking_page_url = bot.get_url()
-        bot.change_wait(7)
+        bot.change_wait(9)
 
         # use this if you want to halt execution until a certain time
         # bot.wait_until_time(minute=59, second=59)
@@ -43,6 +44,7 @@ while True:
                 seat_selected = bot.select_seat(
                     const.NO_OF_TICKETS)
                 bot.click_confirm_purchase(seat_selected)
+                bot.extract_information()
                 # if (const.NO_OF_TICKETS > 1):
                 #     bot.fill_passenger_name(const.PASSENGER_NAMES)
 
@@ -52,7 +54,7 @@ while True:
                 # bot.select_payment_method(payment_method="dbbl_nexus")
 
                 # uncomment to use notification if you aren't near your pc
-                # notify.mail()
+                notify.mail()
                 notify.voice()
                 # notify.noise()
                 break

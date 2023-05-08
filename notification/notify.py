@@ -21,13 +21,15 @@ def mail():
     # Define email sender and receiver
     email_sender = const.SENDER_EMAIL
     email_password = const.GMAIL_PASS
-    email_receiver = [const.RECEIVER_EMAIL]
+    email_receiver = const.RECEIVER_EMAIL
 
     # Set the subject and body of the email
     subject = 'Train Ticket Confirmed!!!'
-    body = """
-    Your train ticket is selected. Finish purchase within 15 minutes.
-    """
+    body = "Train Ticket available. Details:\n" \
+        + const.TRAIN_FOUND + "\n" + const.FROM + "  ->  " + const.TO + "\n" \
+        + const.TRAIN_TIME + "\n" \
+        + const.CLASS_FOUND + "\n" \
+        + const.SEATS + "\n" + "Please purchase ticket within 15 minutes"
 
     em = EmailMessage()
     em['From'] = email_sender

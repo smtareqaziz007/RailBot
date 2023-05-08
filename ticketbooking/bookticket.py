@@ -46,15 +46,15 @@ class Booking(webdriver.Chrome):
         except:
             return False
 
-    def my_sort_condition(self, bogie):  # not usable at this moment
-        seat_layout = self.find_element(By.CSS_SELECTOR,
-                                        'div[class="seat-layout"]'
-                                        )
-        time.sleep(const.WAIT)
-        seats = seat_layout.find_elements(By.CSS_SELECTOR,
-                                          'button[class="btn uppercase p-2 w-4 bg-[#F6F7F9]"]'
-                                          )
-        return len(seats)
+    # def my_sort_condition(self, bogie):  # not usable at this moment
+    #     seat_layout = self.find_element(By.CSS_SELECTOR,
+    #                                     'div[class="seat-layout"]'
+    #                                     )
+    #     time.sleep(const.WAIT)
+    #     seats = seat_layout.find_elements(By.CSS_SELECTOR,
+    #                                       'button[class="btn uppercase p-2 w-4 bg-[#F6F7F9]"]'
+    #                                       )
+    #     return len(seats)
 
     def land_first_page(self, BASE_URL):
         # print(const.DATE)
@@ -311,9 +311,51 @@ class Booking(webdriver.Chrome):
                 time.sleep(const.WAIT)
 
         except Exception as e:
-            print("Error filling co passenger/s name")
             print(e)
             raise Exception("Unable to fill co-passenger/s name")
+
+    def extract_information(self):
+        try:
+            trip_data = self.find_element(By.CSS_SELECTOR,
+                                          'div[class="card mt-2 single-trip-card"]'
+                                          )
+
+            train_found = trip_data.find_element(By.CSS_SELECTOR,
+                                                 'div[class="trip-card-header"]'
+                                                 )
+            # print(train_found.text)
+            const.TRAIN_FOUND = train_found.text
+
+            date_and_time = trip_data.find_element(By.CSS_SELECTOR,
+                                                   'span[class="trip-card-date ng-star-inserted"]'
+                                                   )
+            # print(date_and_time.text)
+            const.TRAIN_TIME = date_and_time.text
+
+            data = trip_data.find_elements(By.CSS_SELECTOR,
+                                           'div[ class="card-data-value ng-star-inserted"]'
+                                           )
+            # print(data[2].text)
+            const.CLASS_FOUND = data[2].text
+
+            seats = trip_data.find_elements(By.CSS_SELECTOR,
+                                            'span[class="single-seat-number ng-star-inserted"]'
+                                            )
+            items = []
+            for seat in seats:
+                items.append(seat.text)
+            const.SEATS = ' , '.join(items)
+
+            # if (int(data[3].text) < const.NO_OF_TICKETS - 1):
+            #     raise Exception("seat_error")
+
+        except Exception as e:
+            print("Unable to fetch information")
+            if (str(e) == "seat_error"):
+                time.sleep(const.WAIT)
+                raise Exception(
+                    "Number of tickets selected is less than desired")
+            print(e)
 
     def click_confirm_purchase(self, selected_seats):
         try:

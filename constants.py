@@ -16,20 +16,24 @@ silkcity = "SILKCITY"
 banalata = "BANALATA"
 dhumketu = "DHUMKETU"
 padma = "PADMA"
-CLASSES = ["S_CHAIR", "SNIGDHA", "AC_S", "AC_B", "F_BERTH"]
+# CLASSES = ["S_CHAIR", "SNIGDHA", "AC_S", "AC_B", "F_BERTH"]
+# TRAINS = ["BANALATA EXPRESS (792)", "SILKCITY EXPRESS (754)",
+#           "PADMA EXPRESS (760)", "DHUMKETU EXPRESS (770)"]
+BLOCKED_CLASSES = []
+BLOCKED_TRAIN = ["BANALATA EXPRESS (792)"]
 
 
 # Modify here according to your requirement
-FROM = "Ishwardi Bypass"
+FROM = "Rajshahi"
 TO = "Dhaka"
-TRAIN = "Silkcity"
+TRAIN = padma
 CLASS = snigdha
-NO_OF_TICKETS = 1
+NO_OF_TICKETS = 2
 
 # Give the name of co passenger's if two or more ticket needed(Don't Include account holder name)
 PASSENGER_NAMES = ["ABCDE", "FGHHIJ", "KLMNO"]
 # How many days left to your journey
-DAYS_TO_JOURNEY = 10
+DAYS_TO_JOURNEY = 1
 
 # An advance option for train and class selecting
 # (All these options will first look for preferred train and class , if not found then these options will be useful)
@@ -37,23 +41,40 @@ DAYS_TO_JOURNEY = 10
 # 2 = It will book ticket from desired train only
 # 3 = It will book ticket of desired class from any of the available train
 # 4 = It will only book ticket from desired train and class only (most restrictive option)
-BOOK_NOW_OPTION = 4
+BOOK_NOW_OPTION = 2
 
 # Insert your chromedriver path here
 DRIVER_PATH = "/usr/local/bin/chromedriver"
 
 # Modify according to your .env file or plainly put here
-# MOBILE = os.environ['MY_GP']
-# PASSWORD = os.environ['MY_GP_PASS']
+MOBILE = os.environ['MY_GP']
+PASSWORD = os.environ['MY_GP_PASS']
 
-MOBILE = os.environ['MY_BL']
-PASSWORD = os.environ['MY_BL_PASS']
+# MOBILE = os.environ['MY_BL']
+# PASSWORD = os.environ['MY_BL_PASS']
+
+# MOBILE = os.environ['MASUD_BL']
+# PASSWORD = os.environ['MASUD_BL_PASS']
+
+# MOBILE = os.environ['NAHID_AIRTEL']
+# PASSWORD = os.environ['NAHID_AIRTEL_PASS']
+
+# MOBILE = os.environ['KASHEM_GP']
+# PASSWORD = os.environ['KASHEM_GP_PASS']
 
 
 # Modify according to your .env file or plainly put here
 SENDER_EMAIL = os.environ['SENDER_EMAIL']
-RECEIVER_EMAIL = os.environ['MY_EMAIL']
+# RECEIVER_EMAIL = [os.environ['MY_EMAIL'], os.environ['RABBENY_EMAIL']]
+# RECEIVER_EMAIL = os.environ['MY_EMAIL']
+# RECEIVER_EMAIL = [os.environ['MY_EMAIL'], os.environ['NAHID_EMAIL']]
+RECEIVER_EMAIL = [os.environ['MY_EMAIL'], os.environ['KASHEM_EMAIL']]
 GMAIL_PASS = os.environ['GMAIL_PASS_KEY']
+
+TRAIN_FOUND = ""
+TRAIN_TIME = ""
+CLASS_FOUND = ""
+SEATS = ""
 
 
 today = datetime.today()

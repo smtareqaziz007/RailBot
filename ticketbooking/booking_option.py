@@ -22,41 +22,43 @@ class BookingOption:
                                                    'div[class="single-seat-class seat-available-wrap ng-star-inserted"]'
                                                    )
 
+        for option in class_options:
+            class_name = option.find_element(
+                By.CLASS_NAME, "seat-class-name")
+            if class_name.text in const.BLOCKED_CLASSES:
+                class_options.remove(option)
+                if len(class_options) == 0:
+                    time.sleep(3)
+                print(class_name.text + " was available but in blocked list")
+
         return class_options
 
     def get_desired_train_first(self, train_options, desired_train):
         # getting the desired train at first position
-        index = 0
+        optimal_options = []
         for opt in train_options:
             t_name = opt.find_element(By.CLASS_NAME, "ng-star-inserted")
-            print(t_name.text)
+            # print(t_name.text)
+            if t_name.text not in const.BLOCKED_TRAIN and desired_train.upper() not in t_name.text:
+                optimal_options.append(opt)
             if desired_train.upper() in t_name.text:
-                train_options[0], train_options[index] = train_options[index], train_options[0]
-                break
-            index = index + 1
-        return train_options
+                optimal_options.insert(0, opt)
+        return optimal_options
 
     def get_desired_class_first(self, class_options, desired_class):
         # **** iterating through each class but skipping undesired classes (need to work on this) ****
-        idx = 0
-        while True:
-            if idx >= len(class_options):
-                break
-            class_name = class_options[idx].find_element(
+        optimal_options = []
+        for option in class_options:
+            class_name = option.find_element(
                 By.CLASS_NAME, "seat-class-name")
             # print(class_name.text)
+            # if class_name.text not in const.BLOCKED_CLASSES and class_name.text not in desired_class:
+            #     optimal_options.append(class_)
             if class_name.text == desired_class:
-                class_options[0], class_options[idx] = class_options[idx], class_options[0]
-                break
-            elif class_name.text == "AC_B" or class_name.text == "AC_S":
-                if idx == len(class_options) - 1:
-                    break
-                # putting cabins at last position
-                class_options[-1], class_options[idx] = class_options[idx], class_options[-1]
-                continue
-
-            idx += 1
-        return class_options
+                optimal_options.insert(0, option)
+            else:
+                optimal_options.append(option)
+        return optimal_options
 
     def click_book_now_button(self, class_options):
         # tm = datetime.now()
@@ -93,6 +95,7 @@ class BookingOption:
 
         if not class_options:
             # time.sleep(const.TIMEOUT)
+            t = datetime.now()
             raise Exception("No ticket available for this train")
 
         class_options = self.get_desired_class_first(
@@ -161,6 +164,7 @@ class BookingOption:
         self.click_book_now_button(class_options)
 
     def default(self, desired_class, desired_train):
+
         # getting all the trains
         train_options = self.get_all_trains()
 
