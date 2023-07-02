@@ -259,19 +259,25 @@ class Booking(webdriver.Chrome):
                                 self.execute_script(
                                     "arguments[0].click();", seat)
                             except Exception as e:
-                                print(e)
+                                # print(e)
                                 continue
 
-                            # here i need to check if the selection was successful
-                            no_of_selected = self.find_elements(By.CSS_SELECTOR,
-                                                                'span[class="single-seat-number ng-star-inserted"]'
-                                                                )
-
+                            no_of_selected = 0
                             time.sleep(0.5)
-                            no_of_selected = WebDriverWait(self, 1).until(EC.presence_of_all_elements_located((
-                                By.CSS_SELECTOR,
-                                'span[class="single-seat-number ng-star-inserted"]'
-                            )))
+
+                            try:
+
+                                # here i need to check if the selection was successful
+                                # no_of_selected = self.find_elements(By.CSS_SELECTOR,
+                                #                                     'span[class="single-seat-number ng-star-inserted"]'
+                                #                                     )
+
+                                no_of_selected = WebDriverWait(self, 1).until(EC.presence_of_all_elements_located((
+                                    By.CSS_SELECTOR,
+                                    'span[class="single-seat-number ng-star-inserted"]'
+                                )))
+                            except Exception as e:
+                                print("Seat counting error")
 
                             if no_of_selected:
                                 selected_seats = len(no_of_selected)
@@ -284,11 +290,11 @@ class Booking(webdriver.Chrome):
 
                     except Exception as e:
                         print("Error in ticket selecting")
-                        print(e)
+                        # print(e)
 
             except Exception as e:
                 print("Bogie changing error occured")
-                print(e)
+                # print(e)
 
         # self.click_confirm_purchase(selected_seats)
         return selected_seats
@@ -422,6 +428,8 @@ class Booking(webdriver.Chrome):
                                                )
                 time.sleep(const.WAIT)
                 dbbl_nexus.click()
+                time.sleep(const.WAIT)
+                self.dbbl_nexus_payment()
 
             time.sleep(const.WAIT)
 
@@ -434,4 +442,50 @@ class Booking(webdriver.Chrome):
 
         except Exception as e:
             print("Error selecting payment method")
+            print(e)
+
+    def dbbl_nexus_payment(self):
+
+        try:
+            name = input("Enter cardholder name : ")
+            nameForm = self.find_element(By.ID, "cardname")
+
+            nameForm.send_keys(name)
+
+            cardNumber = input("Enter card number : ")
+
+            cardForm = self.find_element(By.ID, "cardnr")
+
+            cardForm.send_keys(cardNumber)
+
+            pin = input("Enter PIN : ")
+
+            pinForm = self.find_element(By.ID, "cvc2")
+
+            pinForm.send_keys(pin)
+
+            submitBtn = self.find_element(By.ID, "paydiv")
+
+            submitBtn.click()
+
+            while True:
+
+                otp = input("Enter OTP : ")
+
+                otpForm = self.find_element(By.ID, "passCode")
+
+                otpForm.send_keys(otp)
+
+                finalBtn = self.find_element(By.CLASS_NAME, "submit")
+
+                finalBtn.click()
+
+                # msg = self.find_element(By.ID, "msg")
+                try:
+                    msg = WebDriverWait(self, 5).until(
+                        EC.presence_of_element_located((By.ID, "msg")))
+                    print(msg.text)
+                except Exception as e:
+                    break
+        except Exception as e:
             print(e)

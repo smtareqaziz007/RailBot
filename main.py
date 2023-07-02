@@ -32,7 +32,7 @@ while True:
         bot.select_date_and_class(const.DATE)
         bot.search_trains()
         booking_page_url = bot.get_url()
-        bot.change_wait(9)
+        bot.change_wait(7)
 
         # use this if you want to halt execution until a certain time
         # bot.wait_until_time(minute=59, second=59)
@@ -54,7 +54,8 @@ while True:
                 # bot.select_payment_method(payment_method="dbbl_nexus")
 
                 # uncomment to use notification if you aren't near your pc
-                notify.mail()
+                if const.RECEIVER_EMAIL:
+                    notify.mail()
                 notify.voice()
                 # notify.noise()
                 break

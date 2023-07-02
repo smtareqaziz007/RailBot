@@ -2,6 +2,8 @@ import constants as const
 import time
 from datetime import datetime
 from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
 
@@ -21,6 +23,16 @@ class BookingOption:
         class_options = train_option.find_elements(By.CSS_SELECTOR,
                                                    'div[class="single-seat-class seat-available-wrap ng-star-inserted"]'
                                                    )
+
+        # class_options = []
+
+        # try:
+        #     class_options = WebDriverWait(train_option, 2).until(EC.presence_of_all_elements_located((
+        #         By.CSS_SELECTOR,
+        #         'div[class="single-seat-class seat-available-wrap ng-star-inserted"]'
+        #     )))
+        # except Exception as e:
+        #     print("No class found")
 
         for option in class_options:
             class_name = option.find_element(
