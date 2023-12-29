@@ -26,7 +26,7 @@ def mail():
     # Set the subject and body of the email
     subject = 'Train Ticket Confirmed!!!'
     body = "Train Ticket available. Details:\n" \
-        + const.TRAIN_FOUND + "\n" + const.FROM + "  ->  " + const.TO + "\n" \
+        + const.TRAIN_FOUND + "\n" + const.FROM_FOUND + "  ->  " + const.TO_FOUND + "\n" \
         + const.TRAIN_TIME + "\n" \
         + const.CLASS_FOUND + "\n" \
         + const.SEATS + "\n" + "Please purchase ticket within 15 minutes"

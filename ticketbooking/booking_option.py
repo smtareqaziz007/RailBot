@@ -51,10 +51,24 @@ class BookingOption:
         for opt in train_options:
             t_name = opt.find_element(By.CLASS_NAME, "ng-star-inserted")
             # print(t_name.text)
-            if t_name.text not in const.BLOCKED_TRAIN and desired_train.upper() not in t_name.text:
-                optimal_options.append(opt)
             if desired_train.upper() in t_name.text:
                 optimal_options.insert(0, opt)
+                continue
+            if t_name.text not in const.BLOCKED_TRAIN:
+                optimal_options.append(opt)
+        return optimal_options
+
+    def get_desired_trains(self, train_options, desired_train):
+        # getting the desired train at first position
+        optimal_options = []
+        for opt in train_options:
+            t_name = opt.find_element(By.CLASS_NAME, "ng-star-inserted")
+            # print(t_name.text)
+            if desired_train.upper() in t_name.text:
+                optimal_options.insert(0, opt)
+                continue
+            if t_name.text not in const.BLOCKED_TRAIN and t_name.text.upper() in const.TRAINS:
+                optimal_options.append(opt)
         return optimal_options
 
     def get_desired_class_first(self, class_options, desired_class):
@@ -95,9 +109,9 @@ class BookingOption:
             train_options, desired_train)
 
         train_name = train_options[0].find_element(
-            By.CLASS_NAME, "ng-star-inserted").text.split()
+            By.CLASS_NAME, "ng-star-inserted").text
         # print(f"Train name = {train_name}")
-        if desired_train.upper() != train_name[0]:
+        if desired_train.upper() not in train_name:
             print(f"No train found by the name: {desired_train}")
             time.sleep(const.TIMEOUT)
             raise Exception("No train found by this name")
@@ -150,9 +164,9 @@ class BookingOption:
             train_options, desired_train)
 
         train_name = train_options[0].find_element(
-            By.CLASS_NAME, "ng-star-inserted").text.split()
+            By.CLASS_NAME, "ng-star-inserted").text
         # print(f"Train name = {train_name}")
-        if desired_train.upper() != train_name[0]:
+        if desired_train.upper() not in train_name:
             print(f"No train found by this name {desired_train}")
             time.sleep(const.TIMEOUT)
             raise Exception("No train found by this name")
@@ -173,6 +187,46 @@ class BookingOption:
             time.sleep(const.TIMEOUT)
             raise Exception("Desired class is booked")
 
+        self.click_book_now_button(class_options)
+
+    def desired_trains_only(self, desired_class, desired_train):
+
+        # getting all the trains
+        train_options = self.get_all_trains()
+
+        # get only the desired trains
+        train_options = self.get_desired_trains(
+            train_options, desired_train)
+
+        # for train in train_options:
+        #     train_name = train.find_element(
+        #         By.CLASS_NAME, "ng-star-inserted").text
+
+        # print(train_name)
+
+        # finding available classes for the desired train
+        class_options = self.finding_available_class_for_desired_train(
+            train_options[0])
+
+        # finding the first train that has available seats
+        # ******* eikhane full wait korte hoy train a seat na thakle *******
+        index = 0
+        while len(class_options) == 0:
+            print("aschi train change korte")
+            index += 1
+            if index >= len(train_options):  # all train seats are booked
+                break
+            class_options = self.finding_available_class_for_desired_train(
+                train_options[index])
+            if len(class_options) > 0:
+                break
+
+        if len(class_options) == 0:
+            time.sleep(const.TIMEOUT)
+            raise Exception("All trains are booked")
+
+        class_options = self.get_desired_class_first(
+            class_options, desired_class)
         self.click_book_now_button(class_options)
 
     def default(self, desired_class, desired_train):

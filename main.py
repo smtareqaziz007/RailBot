@@ -7,8 +7,15 @@ from notification import notify
 
 
 # user_input.input_data()
+print("From : " + const.FROM)
+print("To : " + const.TO)
+print("Desired Train : " + const.TRAIN)
+print("Desired Trains : " + str(const.TRAINS))
+print("Desired Class : " + const.CLASS)
 print(const.DATE)
 print(const.MOBILE)
+print("Blocked Trains : " + str(const.BLOCKED_TRAIN))
+print("Blocked Classes : " + str(const.BLOCKED_CLASSES))
 
 while True:
     bot = Booking()
@@ -37,37 +44,50 @@ while True:
         # use this if you want to halt execution until a certain time
         # bot.wait_until_time(minute=59, second=59)
 
+        urls = []
+        urls.append(booking_page_url)
+        urls += bot.generate_urls(booking_page_url)
+        # print(urls)
+        url_num = len(urls)
+        count = 0
+
         while True:
             try:
+                count += 1
                 bot.book_now(const.CLASS, const.NO_OF_TICKETS,
                              const.TRAIN, const.BOOK_NOW_OPTION)
                 seat_selected = bot.select_seat(
                     const.NO_OF_TICKETS)
+
                 bot.click_confirm_purchase(seat_selected)
-                bot.extract_information()
+
                 # if (const.NO_OF_TICKETS > 1):
                 #     bot.fill_passenger_name(const.PASSENGER_NAMES)
 
-                # bot.click_proceed()
+                bot.click_proceed()
 
-                # write "nagad" , "bkash" or "rocket" to payment_method as per your convenience
-                # bot.select_payment_method(payment_method="dbbl_nexus")
+                bot.extract_information()
 
                 # uncomment to use notification if you aren't near your pc
                 if const.RECEIVER_EMAIL:
                     notify.mail()
                 notify.voice()
                 # notify.noise()
+
+                bot.select_payment_method()
+
                 break
             except Exception as e:
-                if str(e) == "No train found by this name":
-                    bot.close()
-                    break
+                # if str(e) == "No train found by this name":
+                #     bot.close()
+                #     break
                 print(e)
-                bot.land_page(booking_page_url)
+                count = count % url_num
+                bot.land_page(urls[count])
         break
-    except:
+    except Exception as e:
         bot.close()
+        print(e)
         # bot.refresh()
         print("Website took too long to respond.\nReloading...")
         # if bot.isBrowserAlive() == False:

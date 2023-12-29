@@ -5,6 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import constants as const
 from ticketbooking.booking_option import BookingOption
 # from ticketbooking.seat_selection import SeatSelection
+from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
 from datetime import datetime
 import time
 import os
@@ -13,7 +14,8 @@ import os
 class Booking(webdriver.Chrome):
     def __init__(self, driver_path=const.DRIVER_PATH, teardown=False):
         options = webdriver.ChromeOptions()
-        # options.add_argument('--headless')
+        # options.add_argument('--no-sandbox')
+        options.add_argument('--headless')
         # options.add_argument('--disable-dev-shm-usage')
         options.add_experimental_option("detach", True)
         # options.add_argument('--disable-extensions')
@@ -56,12 +58,47 @@ class Booking(webdriver.Chrome):
     #                                       )
     #     return len(seats)
 
+    def generate_urls(self, url):
+
+        parsed_url = urlparse(url)
+
+        urls = []
+
+        # Get the query parameters as a dictionary
+        query_params = parse_qs(parsed_url.query)
+        for fromcity in const.FROMLIST:
+            for tocity in const.TOLIST:
+                for doj in const.DATELIST:
+
+                    # Modify the value of specific parameter
+                    if len(const.FROMLIST) > 1:
+                        query_params['fromcity'] = [fromcity]
+                    if len(const.TOLIST) > 1:
+                        query_params['tocity'] = [tocity]
+                    if len(const.DATELIST) > 1:
+                        query_params['doj'] = [doj]
+
+                    query_params['fromcity'] = [fromcity]
+                    query_params['tocity'] = [tocity]
+
+                    # Encode the modified query parameters
+                    encoded_query = urlencode(query_params, doseq=True)
+
+                    # Create the modified URL
+                    page_url = urlunparse(
+                        parsed_url._replace(query=encoded_query))
+                    urls.append(page_url)
+                    # print(page_url)
+
+        return urls
+
     def land_first_page(self, BASE_URL):
         # print(const.DATE)
         self.maximize_window()
         self.get(BASE_URL)
-        self.implicitly_wait(20)
+        self.implicitly_wait(30)
         # time.sleep(const.WAIT)
+        print("Landed on railway page")
 
     def land_page(self, url):
         self.get(url)
@@ -106,6 +143,8 @@ class Booking(webdriver.Chrome):
                                       )
         time.sleep(0.5)
         login_btn.click()
+
+        print("Logged in...")
 
         # os.system('spd-say "your program has finished"')
         # os.system('play -nq -t alsa synth {} sine {}'.format(1, 440))
@@ -158,7 +197,7 @@ class Booking(webdriver.Chrome):
                                          'app-button[class="ng-star-inserted"]'
                                          )
         time.sleep(const.WAIT)
-        class_types[2].click()
+        class_types[6].click()
         # time.sleep(0.5)
 
         date_option = self.find_element(By.CSS_SELECTOR,
@@ -188,6 +227,8 @@ class Booking(webdriver.Chrome):
         time.sleep(const.WAIT)
         search.click()
 
+        print("Necessary information filled...")
+
     def book_now(self, book_class, no_of_tickets, train_name, booking_option=1):
         ticketing_option = BookingOption(self)
         if booking_option == 1:
@@ -196,9 +237,12 @@ class Booking(webdriver.Chrome):
             ticketing_option.desired_train_only(book_class, train_name)
         elif booking_option == 3:
             ticketing_option.desired_class_only(book_class, train_name)
-        else:
+        elif booking_option == 4:
             ticketing_option.desired_train_and_class_only(
                 book_class, train_name)
+
+        else:
+            ticketing_option.desired_trains_only(book_class, train_name)
 
         # self.book_ticket(no_of_tickets)
 
@@ -317,7 +361,7 @@ class Booking(webdriver.Chrome):
                 time.sleep(const.WAIT)
 
         except Exception as e:
-            print(e)
+            # print(e)
             raise Exception("Unable to fill co-passenger/s name")
 
     def extract_information(self):
@@ -325,6 +369,18 @@ class Booking(webdriver.Chrome):
             trip_data = self.find_element(By.CSS_SELECTOR,
                                           'div[class="card mt-2 single-trip-card"]'
                                           )
+
+            cities_found = trip_data.find_elements(By.CSS_SELECTOR,
+                                                   'span[class="trip-card-city-name ng-star-inserted"]'
+                                                   )
+            # print(cities_found[0].text)
+            const.FROM_FOUND = cities_found[0].text
+
+            # to_found = trip_data.find_element(By.CSS_SELECTOR,
+            #                                   'span[class="trip-card-city-name ng-star-inserted"]'
+            #                                   )
+            # print(cities_found[1].text)
+            const.TO_FOUND = cities_found[1].text
 
             train_found = trip_data.find_element(By.CSS_SELECTOR,
                                                  'div[class="trip-card-header"]'
@@ -352,6 +408,18 @@ class Booking(webdriver.Chrome):
                 items.append(seat.text)
             const.SEATS = ' , '.join(items)
 
+            # This part was doesn't work , supposed to get the fare but always returns 0
+            # fare_found = self.find_element(
+            #     By.CSS_SELECTOR, 'div[class="semi flex flex-row space-x-1"]')
+
+            # # print(len(fare_found))
+
+            # print(fare_found.text)
+            # const.FARE_FOUND = fare_found.text
+
+            print(const.FROM_FOUND + "--->" + const.TO_FOUND + "\n" + const.TRAIN_FOUND + "\n" +
+                  const.CLASS_FOUND + "\n" + const.SEATS + "\n")
+
             # if (int(data[3].text) < const.NO_OF_TICKETS - 1):
             #     raise Exception("seat_error")
 
@@ -361,7 +429,7 @@ class Booking(webdriver.Chrome):
                 time.sleep(const.WAIT)
                 raise Exception(
                     "Number of tickets selected is less than desired")
-            print(e)
+            # print(e)
 
     def click_confirm_purchase(self, selected_seats):
         try:
@@ -377,7 +445,7 @@ class Booking(webdriver.Chrome):
 
         except Exception as e:
             print("Error clicking confirm button")
-            print(e)
+            # print(e)
             if selected_seats == 0:
                 raise Exception("Unable to select any seat")
 
@@ -393,10 +461,35 @@ class Booking(webdriver.Chrome):
             # self.select_payment_method()
         except Exception as e:
             print("Error clicking proceed button")
-            print(e)
+            # print(e)
 
-    def select_payment_method(self, payment_method="bkash"):
+    def select_payment_method(self):
         try:
+
+            payment_method = "dbbl_nexus"
+
+            # print("Select Payment method")
+            # print("1. Bkash (doesn't work right now)")
+            # print("2. Rocket")
+            # print("3. Nagad")
+            # print("4. DBBL_Nexus")
+            # payment_option = int(input("Type a number : "))
+
+            # if payment_option == 1:
+            #     payment_method = "bkash"
+
+            # elif payment_option == 2:
+            #     payment_method = "rocket"
+
+            # elif payment_option == 3:
+            #     payment_method = "nagad"
+
+            # elif payment_option == 4:
+            #     payment_method = "dbbl_nexus"
+
+            print(payment_method)
+
+            time.sleep(const.WAIT)
 
             if payment_method == "nagad":
 
@@ -405,13 +498,17 @@ class Booking(webdriver.Chrome):
                                           )
                 time.sleep(const.WAIT)
                 nagad.click()
+                time.sleep(const.WAIT)
+                self.nagad_payment()
 
             elif payment_method == "bkash":
                 bkash = self.find_element(By.CSS_SELECTOR,
-                                          'img[src="assets/images/select-payment/bkash.svg"]'
+                                          'img[src="assets/images/select-payment/bkash_bangla.svg"]'
                                           )  # class="image w-16"
                 time.sleep(const.WAIT)
                 bkash.click()
+                time.sleep(const.WAIT)
+                self.bkash_payment()
 
             elif payment_method == "rocket":
 
@@ -420,6 +517,8 @@ class Booking(webdriver.Chrome):
                                            )
                 time.sleep(const.WAIT)
                 rocket.click()
+                time.sleep(const.WAIT)
+                self.rocket_payment()
 
             else:
 
@@ -432,31 +531,33 @@ class Booking(webdriver.Chrome):
                 self.dbbl_nexus_payment()
 
             time.sleep(const.WAIT)
-
-            to_payment_btn = self.find_element(By.CSS_SELECTOR,
-                                               'button[class="btn shadow-lg p-2 rounded-full font-bold text-sm uppercase bg-primary w-full h-12 text-white"]'
-                                               )
-
-            time.sleep(const.WAIT)
-            to_payment_btn.click()
+            # to_payment_btn.click()
 
         except Exception as e:
             print("Error selecting payment method")
-            print(e)
+            raise Exception("Error selecting payment method")
+            # print(e)
 
     def dbbl_nexus_payment(self):
 
         try:
+
+            to_payment_btn = self.find_element(By.CSS_SELECTOR,
+                                               'button[class="btn shadow-lg p-2 rounded-full font-bold text-sm uppercase bg-primary w-full h-12 text-white"]'
+                                               )
+            time.sleep(const.WAIT)
+            to_payment_btn.click()
+
             name = input("Enter cardholder name : ")
             nameForm = self.find_element(By.ID, "cardname")
 
             nameForm.send_keys(name)
 
-            cardNumber = input("Enter card number : ")
+            mobileNumber = input("Enter card number : ")
 
             cardForm = self.find_element(By.ID, "cardnr")
 
-            cardForm.send_keys(cardNumber)
+            cardForm.send_keys(mobileNumber)
 
             pin = input("Enter PIN : ")
 
@@ -488,4 +589,128 @@ class Booking(webdriver.Chrome):
                 except Exception as e:
                     break
         except Exception as e:
+            print("Payment failed")
+            raise Exception("Payment failed")
+
+    def bkash_payment(self):
+        try:
+            to_payment_btn = self.find_element(By.CSS_SELECTOR,
+                                               'button[class="btn shadow-lg p-2 rounded-full font-bold text-sm uppercase bg-primary w-full h-12 text-white"]'
+                                               )
+            time.sleep(const.WAIT)
+            to_payment_btn.click()
+
+            time.sleep(20)
+
+            # mobileNumber = input("Enter mobile number : ")
+            mobileNumber = "01948626780"
+
+            numberForm = self.find_element(
+                By.CSS_SELECTOR, 'input[placeholder="e.g 01XXXXXXXXX"]')
+
+            numberForm.send_keys(mobileNumber)
+
+            numberConfirmBtn = self.find_element(By.ID, "submit_button")
+
+            numberConfirmBtn.click()
+
+        except Exception as e:
+            print("Payment failed")
+            print(e)
+
+    def rocket_payment(self):
+
+        try:
+
+            to_payment_btn = self.find_element(By.CSS_SELECTOR,
+                                               'button[class="btn shadow-lg p-2 rounded-full font-bold text-sm uppercase bg-primary w-full h-12 text-white"]'
+                                               )
+            time.sleep(const.WAIT)
+            to_payment_btn.click()
+
+            mobileNumber = input("Enter mobile number(12 digits) : ")
+
+            cardForm = self.find_element(By.ID, "cardnr")
+
+            cardForm.send_keys(mobileNumber)
+
+            pin = input("Enter PIN : ")
+
+            pinForm = self.find_element(By.ID, "cvc2")
+
+            pinForm.send_keys(pin)
+
+            submitBtn = self.find_element(By.ID, "paydiv")
+
+            submitBtn.click()
+
+            while True:
+
+                otp = input("Enter OTP : ")
+
+                otpForm = self.find_element(By.ID, "passCode")
+
+                otpForm.send_keys(otp)
+
+                finalBtn = self.find_element(By.CLASS_NAME, "submit")
+
+                finalBtn.click()
+
+                # msg = self.find_element(By.ID, "msg")
+                try:
+                    msg = WebDriverWait(self, 5).until(
+                        EC.presence_of_element_located((By.ID, "msg")))
+                    print(msg.text)
+                except Exception as e:
+                    break
+        except Exception as e:
+            print("Payment failed")
+
+    def nagad_payment(self):
+        try:
+            to_payment_btn = self.find_element(By.CSS_SELECTOR,
+                                               'button[class="btn shadow-lg p-2 rounded-full font-bold text-sm uppercase bg-primary w-full h-12 text-white"]'
+                                               )
+            time.sleep(const.WAIT)
+            to_payment_btn.click()
+
+            time.sleep(20)
+
+            mobileNumber = input("Enter mobile number: ")
+
+            numberBox = self.find_elements(
+                By.CSS_SELECTOR, 'input[class="form-control"]')
+
+            for i in range(11):
+                numberBox[i].send_keys(mobileNumber[i])
+
+            proceedBtn = self.find_element(
+                By.CSS_SELECTOR, 'button[data-trans-key="proceed_btn"]')
+            proceedBtn.click()
+
+            otp = input("Enter OTP : ")
+
+            otpForm = self.find_element(
+                By.CSS_SELECTOR, 'input[class="form-control text-center"]')
+
+            otpForm.send_keys(otp)
+
+            proceedBtn = self.find_element(
+                By.CSS_SELECTOR, 'button[data-trans-key="proceed_btn"]')
+            proceedBtn.click()
+
+            pin = input("Enter PIN: ")
+
+            pinBox = self.find_elements(
+                By.CSS_SELECTOR, 'input[class="form-control"]')
+
+            for i in range(4):
+                pinBox[i].send_keys(pin[i])
+
+            proceedBtn = self.find_element(
+                By.CSS_SELECTOR, 'button[data-trans-key="proceed_btn"]')
+            proceedBtn.click()
+
+        except Exception as e:
+            print("Payment failed")
             print(e)
