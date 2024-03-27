@@ -9,14 +9,15 @@ from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
 from datetime import datetime
 import time
 import os
+import signal
 
 
 class Booking(webdriver.Chrome):
     def __init__(self, driver_path=const.DRIVER_PATH, teardown=False):
         options = webdriver.ChromeOptions()
-        # options.add_argument('--no-sandbox')
-        options.add_argument('--headless')
-        # options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--no-sandbox')
+        # options.add_argument('--headless')
+        options.add_argument('--disable-dev-shm-usage')
         options.add_experimental_option("detach", True)
         # options.add_argument('--disable-extensions')
         # options.add_argument('--disable-images')
@@ -24,8 +25,7 @@ class Booking(webdriver.Chrome):
         # self.driver_path = driver_path
         # self.teardown = teardown
 
-        super(Booking, self).__init__(
-            executable_path=driver_path, options=options)
+        super(Booking, self).__init__(options=options)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.teardown:
@@ -266,7 +266,7 @@ class Booking(webdriver.Chrome):
 
         selected_seats = 0
 
-        for bogie in bogies:
+        for bogie in reversed(bogies): #--------> I have reversed the bogies
             try:
                 if to_be_purchased == 0:
                     break
@@ -294,7 +294,7 @@ class Booking(webdriver.Chrome):
                 # time.sleep(const.WAIT)
                 print(len(seats))
 
-                for seat in seats:
+                for seat in reversed(seats): # -------> I have reversed the order
                     try:
                         if seat.text != "":
                             print(seat.text)
@@ -307,7 +307,7 @@ class Booking(webdriver.Chrome):
                                 continue
 
                             no_of_selected = 0
-                            time.sleep(0.5)
+                            time.sleep(0.5) # --------> I Have chnaged the wait from 0.5 to 0.2
 
                             try:
 
@@ -339,9 +339,58 @@ class Booking(webdriver.Chrome):
             except Exception as e:
                 print("Bogie changing error occured")
                 # print(e)
-
-        # self.click_confirm_purchase(selected_seats)
         return selected_seats
+
+    def timeout_handler(signum, frame):
+        print("Timeout reached. Exiting.")
+        raise TimeoutError
+    
+    def submit_otp(self):
+
+        try:
+
+            otp_inputs = self.find_elements(By.CSS_SELECTOR,
+                                        'input[placeholder="*"]')
+            
+            # print(len(otp_inputs))
+            # print(otp_inputs)
+
+             # Set the signal handler for SIGALRM (alarm signal)
+            signal.signal(signal.SIGALRM, self.timeout_handler)
+            signal.alarm(300)
+
+            while True:
+
+                otp = input("Enter OTP: ")
+                idx = 0
+
+                signal.alarm(0)
+
+                for otp_input in otp_inputs:
+                    otp_input.send_keys(otp[idx])
+                    idx = idx + 1
+
+                resend_otp = self.find_element(By.CSS_SELECTOR,
+                                            'button[class="resend underline mr-2 disabled:opacity-50"]')
+
+                verify_button = self.find_element(By.CSS_SELECTOR,
+                                                'button[class="btn shadow-lg p-2 rounded-full font-bold text-sm uppercase bg-primary text-white w-full h-12"]')
+
+                verify_button.click()
+
+                try:
+                    msg = WebDriverWait(self, 5).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, 'div[class="display-error ng-star-inserted"]')))
+                    print(msg.text)
+                except Exception:
+                    break
+
+        except Exception as e:
+            print(e)
+            raise Exception("OTP niye jhamela hoise")
+        
+        finally:
+            signal.alarm(0)
 
     def fill_passenger_name(self, passenger_list):
         try:
@@ -553,11 +602,11 @@ class Booking(webdriver.Chrome):
 
             nameForm.send_keys(name)
 
-            mobileNumber = input("Enter card number : ")
+            cardNumber = input("Enter card number : ")
 
             cardForm = self.find_element(By.ID, "cardnr")
 
-            cardForm.send_keys(mobileNumber)
+            cardForm.send_keys(cardNumber)
 
             pin = input("Enter PIN : ")
 

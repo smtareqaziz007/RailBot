@@ -1,2 +1,11 @@
 venv/
 .env
+user/__pycache__/
+.vscode/
+__pycache__/
+ticketbooking/__pycache__/
+notification/__pycache__/
+*/__pycache__/
+*.pyc
+*.cpython
+constants.py

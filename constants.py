@@ -19,30 +19,30 @@ banalata = "BANALATA"
 dhumketu = "DHUMKETU"
 padma = "PADMA"
 # CLASSES = ["S_CHAIR", "SNIGDHA", "AC_S", "AC_B", "F_BERTH"]
-# TRAINS = ["BANALATA EXPRESS (791)", "SILKCITY EXPRESS (754)",
-#           "PADMA EXPRESS (760)", "DHUMKETU EXPRESS (770)" , "EKOTA EXPRESS (705)"]
-BLOCKED_CLASSES = [ac_s]
+# TRAINS = ["BANALATA EXPRESS (791)", "SILKCITY EXPRESS (754)", "NILSAGAR EXPRESS (765)",
+#           "PADMA EXPRESS (760)", "DHUMKETU EXPRESS (770)" , "EKOTA EXPRESS (705)" ,"PANCHAGARH EXPRESS (793)","EKOTA EXPRESS (705)","RANGPUR EXPRESS (771)" ]
+BLOCKED_CLASSES = [s_chair]
 BLOCKED_TRAIN = []
-# FROMLIST = ["Natore", "Ishwardi Bypass", "Ullapara", "SH M Monsur Ali"]
-# TOLIST = ["Dinajpur", "B Sirajul Islam"]
-FROMLIST = ["Rajshahi", "Ishwardi Bypass", "Abdulpur"]
-TOLIST = ["Dhaka"]
-DATELIST = ["01-Jan-2024"]
+
+
+FROMLIST = ["Dhaka"]
+TOLIST = ["Dinajpur" , "Thakurgaon_Road" , "Parbatipur"]
+DATELIST = ["04-Apr-2024"]
 
 
 # Modify here according to your requirement
-FROM = "Ishwardi Bypass"
-TO = "Dhaka"
-TRAIN = silkcity
-TRAINS = ["DHUMKETU EXPRESS (769)", "NILSAGAR EXPRESS (765)",
-          "RANGPUR EXPRESS (771)", "EKOTA EXPRESS (705)"]
-CLASS = snigdha
-NO_OF_TICKETS = 1
+FROM = "Dhaka"
+TO = "Rajshahi"
+# TRAIN = "PANCHAGARH EXPRESS (793)"
+TRAIN = padma
+TRAINS = ["SILKCITY EXPRESS (754)", "PADMA EXPRESS (760)"]
+CLASS = ac_b
+NO_OF_TICKETS = 4
 
 # Give the name of co passenger's if two or more ticket needed(Don't Include account holder name)
-PASSENGER_NAMES = ["ABCDE", "FGHHIJ", "KLMNO"]
+PASSENGER_NAMES = ["Rajia Sultana", "Golanur Khatun", "Rownak"]
 # How many days left to your journey
-DAYS_TO_JOURNEY = 3
+DAYS_TO_JOURNEY = 10
 
 # An advance option for train and class selecting
 # (All these options will first look for preferred train and class , if not found then these options will be useful)
@@ -51,7 +51,7 @@ DAYS_TO_JOURNEY = 3
 # 3 = It will book ticket of desired class from any of the available train
 # 4 = It will only book ticket from desired train and class only (most restrictive option)
 # 5 = It will book from the list of the desired trains
-BOOK_NOW_OPTION = 2
+BOOK_NOW_OPTION = 4
 
 # Insert your chromedriver path here
 DRIVER_PATH = "/usr/local/bin/chromedriver"
@@ -60,8 +60,11 @@ DRIVER_PATH = "/usr/local/bin/chromedriver"
 MOBILE = os.environ['MY_GP']
 PASSWORD = os.environ['MY_GP_PASS']
 
-MOBILE = os.environ['MY_BL']
-PASSWORD = os.environ['MY_BL_PASS']
+MOBILE = os.environ['KASHEM_GP']
+PASSWORD = os.environ['KASHEM_GP_PASS']
+
+# MOBILE = os.environ['MY_BL']
+# PASSWORD = os.environ['MY_BL_PASS']
 
 # MOBILE = os.environ['SAKIB_ROBI']
 # PASSWORD = os.environ['SAKIB_ROBI_PASS']
@@ -96,10 +99,10 @@ PASSWORD = os.environ['MY_BL_PASS']
 # Modify according to your .env file or plainly put here
 SENDER_EMAIL = os.environ['SENDER_EMAIL']
 RECEIVER_EMAIL = []
-RECEIVER_EMAIL = [os.environ['MY_EMAIL']]
+# RECEIVER_EMAIL = [os.environ['MY_EMAIL']]
 # RECEIVER_EMAIL = [os.environ['MY_EMAIL'], os.environ['KASHEM_EMAIL']]
 # RECEIVER_EMAIL = [os.environ['MY_EMAIL'], os.environ['FAHIM_EMAIL']]
-# RECEIVER_EMAIL = [os.environ['MY_EMAIL'], os.environ['NAHID_EMAIL']]
+# RECEIVER_EMAIL = [os.environ['MY_EMAIL'], os.environ['SOUROVE_EMAIL']]
 # RECEIVER_EMAIL = [os.environ['MY_EMAIL'], os.environ['MASUD_EMAIL']]
 # RECEIVER_EMAIL = [os.environ['MY_EMAIL'], os.environ['RABBENY_EMAIL']]
 GMAIL_PASS = os.environ['GMAIL_PASS_KEY']
