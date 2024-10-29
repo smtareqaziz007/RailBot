@@ -9,8 +9,7 @@ How to use the RailBot? Well It's very easy if you follow along with me.
 2. Download Chromedriver according to chrome browser version. Add chromedriver path to $PATH
    environment variable. Also you can add the chromedriver path in step 7.
    To check chrome version type chrome://version this in your browser.
-   Chromedriver - https://chromedriver.storage.googleapis.com/index.html
-   https://googlechromelabs.github.io/chrome-for-testing/#stable
+   Chromedriver - https://googlechromelabs.github.io/chrome-for-testing/#stable
 
 3. Download the RailBot project from github.
    command - git clone https://github.com/smtareqaziz007/RailBot.git
