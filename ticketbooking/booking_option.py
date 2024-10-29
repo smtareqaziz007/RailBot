@@ -54,7 +54,7 @@ class BookingOption:
             if desired_train.upper() in t_name.text:
                 optimal_options.insert(0, opt)
                 continue
-            if t_name.text not in const.BLOCKED_TRAIN:
+            if t_name.text.split()[0] not in const.BLOCKED_TRAIN:
                 optimal_options.append(opt)
         return optimal_options
 
@@ -64,10 +64,10 @@ class BookingOption:
         for opt in train_options:
             t_name = opt.find_element(By.CLASS_NAME, "ng-star-inserted")
             # print(t_name.text)
-            if desired_train.upper() in t_name.text:
+            if const.TRAIN.upper() in t_name.text:
                 optimal_options.insert(0, opt)
                 continue
-            if t_name.text not in const.BLOCKED_TRAIN and t_name.text.upper() in const.TRAINS:
+            if t_name.text.split()[0].upper() not in const.BLOCKED_TRAIN and t_name.text.split()[0].upper() in const.TRAINS:
                 optimal_options.append(opt)
         return optimal_options
 
@@ -202,7 +202,7 @@ class BookingOption:
         #     train_name = train.find_element(
         #         By.CLASS_NAME, "ng-star-inserted").text
 
-        # print(train_name)
+        #     print(train_name)
 
         # finding available classes for the desired train
         class_options = self.finding_available_class_for_desired_train(

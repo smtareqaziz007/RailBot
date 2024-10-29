@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import constants as const
 from ticketbooking.booking_option import BookingOption
+from selenium.common import exceptions
 # from ticketbooking.seat_selection import SeatSelection
 from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
 from datetime import datetime
@@ -229,20 +230,20 @@ class Booking(webdriver.Chrome):
 
         print("Necessary information filled...")
 
-    def book_now(self, book_class, no_of_tickets, train_name, booking_option=1):
+    def book_now(self):
         ticketing_option = BookingOption(self)
-        if booking_option == 1:
-            ticketing_option.default(book_class, train_name)
-        elif booking_option == 2:
-            ticketing_option.desired_train_only(book_class, train_name)
-        elif booking_option == 3:
-            ticketing_option.desired_class_only(book_class, train_name)
-        elif booking_option == 4:
+        if const.BOOK_NOW_OPTION == 1:
+            ticketing_option.default(const.CLASS, const.TRAIN)
+        elif const.BOOK_NOW_OPTION == 2:
+            ticketing_option.desired_train_only(const.CLASS, const.TRAIN)
+        elif const.BOOK_NOW_OPTION == 3:
+            ticketing_option.desired_class_only(const.CLASS, const.TRAIN)
+        elif const.BOOK_NOW_OPTION == 4:
             ticketing_option.desired_train_and_class_only(
-                book_class, train_name)
+                const.CLASS, const.TRAIN)
 
         else:
-            ticketing_option.desired_trains_only(book_class, train_name)
+            ticketing_option.desired_trains_only(const.CLASS, const.TRAINS)
 
         # self.book_ticket(no_of_tickets)
 
@@ -252,33 +253,38 @@ class Booking(webdriver.Chrome):
 
         # firstly finding the bogie_row
         to_be_purchased = no_of_tickets
-        bogie_row = self.find_element(By.CSS_SELECTOR,
-                                      'div[class="mt-2 flex flex-wrap relative -ml-1 -mr-1"]'
-                                      )
+        bogie_row = WebDriverWait(self, 10).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, 'div[class="mt-2 flex flex-wrap relative -ml-1 -mr-1"]'))
+                )
 
         bogies = WebDriverWait(bogie_row, 10).until(EC.presence_of_all_elements_located((
             By.CSS_SELECTOR,
             'button'
         )))
-        # print(len(bogies))
+
+        bogie_count = len(bogies)
+        # print("Bogies Length = " + str(bogie_count))
 
         # time.sleep(const.WAIT)
 
         selected_seats = 0
 
-        for bogie in reversed(bogies): #--------> I have reversed the bogies
+        for i in range(bogie_count):
             try:
                 if to_be_purchased == 0:
                     break
 
-                # time.sleep(0.5)
+                bogies = WebDriverWait(bogie_row, 10).until(EC.presence_of_all_elements_located((
+                    By.CSS_SELECTOR,
+                    'button'
+                )))
+                    
+                bogie = bogies[i]
                 print(bogie.text)
                 # skip the bogie that doesn't have a name
                 if bogie.text == "":
                     continue
-                # bogie.click()
-                # actions.move_to_element(bogie).click().perform()
-                # self.execute_script("arguments[0].scrollIntoView();", bogie)
+
                 self.execute_script("arguments[0].click();", bogie)
 
                 seat_layout = WebDriverWait(self, 10).until(EC.presence_of_element_located((
@@ -292,13 +298,12 @@ class Booking(webdriver.Chrome):
                 )))
 
                 # time.sleep(const.WAIT)
-                print(len(seats))
+                print("Seat Length = " + str(len(seats)))
 
                 for seat in reversed(seats): # -------> I have reversed the order
                     try:
                         if seat.text != "":
                             print(seat.text)
-                            # seat.click()
                             try:
                                 self.execute_script(
                                     "arguments[0].click();", seat)
@@ -307,15 +312,11 @@ class Booking(webdriver.Chrome):
                                 continue
 
                             no_of_selected = 0
-                            time.sleep(0.5) # --------> I Have chnaged the wait from 0.5 to 0.2
+                            time.sleep(0.3) # --------> I Have chnaged the wait from 0.5 to 0.2
 
-                            try:
+                            try: # this checking is not required while purchasing eid ticket
 
                                 # here i need to check if the selection was successful
-                                # no_of_selected = self.find_elements(By.CSS_SELECTOR,
-                                #                                     'span[class="single-seat-number ng-star-inserted"]'
-                                #                                     )
-
                                 no_of_selected = WebDriverWait(self, 1).until(EC.presence_of_all_elements_located((
                                     By.CSS_SELECTOR,
                                     'span[class="single-seat-number ng-star-inserted"]'
@@ -326,19 +327,31 @@ class Booking(webdriver.Chrome):
                             if no_of_selected:
                                 selected_seats = len(no_of_selected)
                                 print(f"selected = {selected_seats}")
-                                if len(no_of_selected) == no_of_tickets:
+                                if selected_seats == no_of_tickets:
                                     to_be_purchased = 0
                                     break
-
+                            
                             time.sleep(0.1)
 
                     except Exception as e:
                         print("Error in ticket selecting")
                         # print(e)
 
+            except exceptions.StaleElementReferenceException as e:
+                bogies = WebDriverWait(bogie_row, 10).until(EC.presence_of_all_elements_located((
+                    By.CSS_SELECTOR,
+                    'button'
+                )))
+                bogie = bogies[i]
+                print(bogie.text)
+                self.execute_script("arguments[0].click();", bogie)
             except Exception as e:
                 print("Bogie changing error occured")
                 # print(e)
+                
+        # if(selected_seats < const.NO_OF_TICKETS):
+        #     raise Exception("Ticket quota not met")
+
         return selected_seats
 
     def timeout_handler(signum, frame):
@@ -457,7 +470,7 @@ class Booking(webdriver.Chrome):
                 items.append(seat.text)
             const.SEATS = ' , '.join(items)
 
-            # This part was doesn't work , supposed to get the fare but always returns 0
+            # This part doesn't work , supposed to get the fare but always returns 0
             # fare_found = self.find_element(
             #     By.CSS_SELECTOR, 'div[class="semi flex flex-row space-x-1"]')
 
@@ -469,16 +482,30 @@ class Booking(webdriver.Chrome):
             print(const.FROM_FOUND + "--->" + const.TO_FOUND + "\n" + const.TRAIN_FOUND + "\n" +
                   const.CLASS_FOUND + "\n" + const.SEATS + "\n")
 
-            # if (int(data[3].text) < const.NO_OF_TICKETS - 1):
+            # if (int(data[3].text) < const.NO_OF_TICKETS):
             #     raise Exception("seat_error")
 
         except Exception as e:
             print("Unable to fetch information")
-            if (str(e) == "seat_error"):
-                time.sleep(const.WAIT)
-                raise Exception(
-                    "Number of tickets selected is less than desired")
+            # if (str(e) == "seat_error"):
+            #     time.sleep(const.WAIT)
+            #     raise Exception(
+            #         "Number of tickets selected is less than desired")
             # print(e)
+
+    def is_click_confirm_available(self):
+        try:
+            confirm_purchase_btn = self.find_element(By.CSS_SELECTOR,
+                                                     'button[class="btn shadow-lg p-2 rounded-full font-bold text-sm uppercase bg-primary text-white w-full h-12"]')
+
+            if  confirm_purchase_btn:
+                    return True
+            else:
+                return False
+        
+        except Exception as e:                                                                                       
+            raise Exception("Confirm purchase button is not enabled")
+        
 
     def click_confirm_purchase(self, selected_seats):
         try:
@@ -497,6 +524,7 @@ class Booking(webdriver.Chrome):
             # print(e)
             if selected_seats == 0:
                 raise Exception("Unable to select any seat")
+            
 
     def click_proceed(self):
         try:

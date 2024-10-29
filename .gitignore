@@ -8,4 +8,4 @@ notification/__pycache__/
 */__pycache__/
 *.pyc
 *.cpython
-constants.py
+constants*

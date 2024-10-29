@@ -38,14 +38,15 @@ while True:
         bot.select_date_and_class(const.DATE)
         bot.search_trains()
         booking_page_url = bot.get_url()
-        bot.change_wait(7)
+        bot.change_wait(5)
 
         # use this if you want to halt execution until a certain time
-        # bot.wait_until_time(minute=59, second=59)
+        # bot.wait_until_time(minute=59, second=58)
 
         urls = []
         urls.append(booking_page_url)
-        # urls += bot.generate_urls(booking_page_url)
+        if const.GENERATE_URL:
+            urls += bot.generate_urls(booking_page_url)
         # print(urls)
         url_num = len(urls)
         count = 0
@@ -53,14 +54,18 @@ while True:
         while True:
             try:
                 count += 1
-                bot.book_now(const.CLASS, const.NO_OF_TICKETS,
-                             const.TRAIN, const.BOOK_NOW_OPTION)
+                bot.book_now()
                 seat_selected = bot.select_seat(
                     const.NO_OF_TICKETS)
                 
                 bot.extract_information()
+
+                is_button_available = bot.is_click_confirm_available()
+
+                if not is_button_available:
+                    raise Exception("No ticket is being selected")
                 
-                bot.click_confirm_purchase(seat_selected)
+                # bot.click_confirm_purchase(seat_selected)
 
                 # uncomment to use notification if you aren't near your pc
                 # notify.noise()
