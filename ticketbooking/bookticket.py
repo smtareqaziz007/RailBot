@@ -247,60 +247,63 @@ class Booking(webdriver.Chrome):
 
         # self.book_ticket(no_of_tickets)
 
-    def select_seat(self, no_of_tickets):
-        # seat_selection_option = SeatSelection(self)
-        # seat_selection_option.default(no_of_tickets)
-
-        # firstly finding the bogie_row
-        to_be_purchased = no_of_tickets
-        bogie_row = WebDriverWait(self, 10).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, 'div[class="mt-2 flex flex-wrap relative -ml-1 -mr-1"]'))
-                )
-
-        bogies = WebDriverWait(bogie_row, 10).until(EC.presence_of_all_elements_located((
+    def get_available_bogies(self, bogie_row):
+        
+        # bogie_row = WebDriverWait(self, 10).until(
+        #             EC.presence_of_element_located((By.CSS_SELECTOR, 'div[class="mt-2 flex flex-wrap relative -ml-1 -mr-1"]'))
+        # )
+        
+        try:
+            bogies = WebDriverWait(bogie_row, 0.7).until(EC.presence_of_all_elements_located((
+            By.CSS_SELECTOR,
+            'button[class="btn uppercase p-2 w-4 bg-[#FFFFFF] text-black border-2 border-black"]'
+            )))
+            return bogies
+        except:
+            first_bogie = WebDriverWait(bogie_row, 0.5).until(EC.presence_of_element_located((
             By.CSS_SELECTOR,
             'button'
-        )))
+            )))
+            return [first_bogie]
+        
+    def select_seat(self, no_of_tickets):
+        
+        to_be_purchased = no_of_tickets
+        
+        bogie_row = WebDriverWait(self, 10).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, 'div[class="mt-2 flex flex-wrap relative -ml-1 -mr-1"]'))
+        )
+        
+        bogies = self.get_available_bogies(bogie_row)
 
         bogie_count = len(bogies)
-        # print("Bogies Length = " + str(bogie_count))
-
-        # time.sleep(const.WAIT)
+        print("Bogies Length = " + str(bogie_count))
 
         selected_seats = 0
 
-        for i in range(bogie_count):
+        for i in range(bogie_count - 1, -1, -1):
             try:
                 if to_be_purchased == 0:
                     break
-
-                bogies = WebDriverWait(bogie_row, 10).until(EC.presence_of_all_elements_located((
-                    By.CSS_SELECTOR,
-                    'button'
-                )))
-                    
+                
                 bogie = bogies[i]
                 print(bogie.text)
-                # skip the bogie that doesn't have a name
-                if bogie.text == "":
-                    continue
-
+                
                 self.execute_script("arguments[0].click();", bogie)
 
-                seat_layout = WebDriverWait(self, 10).until(EC.presence_of_element_located((
+                seat_layout = WebDriverWait(self, 1).until(EC.presence_of_element_located((
                     By.CSS_SELECTOR,
                     'div[class="seat-layout"]'
                 )))
 
-                seats = WebDriverWait(seat_layout, 3).until(EC.presence_of_all_elements_located((
+                seats = WebDriverWait(seat_layout, 0.3).until(EC.presence_of_all_elements_located((
                     By.CSS_SELECTOR,
                     'button[class="btn uppercase p-2 w-4 bg-[#FFFFFF] text-black border-2 border-black"]'
                 )))
 
-                # time.sleep(const.WAIT)
                 print("Seat Length = " + str(len(seats)))
 
-                for seat in reversed(seats): # -------> I have reversed the order
+                for seat in reversed(seats):
                     try:
                         if seat.text != "":
                             print(seat.text)
@@ -314,39 +317,39 @@ class Booking(webdriver.Chrome):
                             no_of_selected = 0
                             time.sleep(0.3) # --------> I Have chnaged the wait from 0.5 to 0.2
 
-                            try: # this checking is not required while purchasing eid ticket
+                            # try: # this checking is not required while purchasing eid ticket
 
-                                # here i need to check if the selection was successful
-                                no_of_selected = WebDriverWait(self, 1).until(EC.presence_of_all_elements_located((
-                                    By.CSS_SELECTOR,
-                                    'span[class="single-seat-number ng-star-inserted"]'
-                                )))
-                            except Exception as e:
-                                print("Seat counting error")
+                            #     # here i need to check if the selection was successful
+                            #     no_of_selected = WebDriverWait(self, 1).until(EC.presence_of_all_elements_located((
+                            #         By.CSS_SELECTOR,
+                            #         'span[class="single-seat-number ng-star-inserted"]'
+                            #     )))
+                            # except Exception as e:
+                            #     print("Seat counting error")
 
-                            if no_of_selected:
-                                selected_seats = len(no_of_selected)
-                                print(f"selected = {selected_seats}")
-                                if selected_seats == no_of_tickets:
-                                    to_be_purchased = 0
-                                    break
-                            
-                            time.sleep(0.1)
+                            # if no_of_selected:
+                            #     selected_seats = len(no_of_selected)
+                            #     print(f"selected = {selected_seats}")
+                            #     if selected_seats == no_of_tickets:
+                            #         to_be_purchased = 0
+                            #         break
+                            # 
+                            # time.sleep(0.1)
 
                     except Exception as e:
                         print("Error in ticket selecting")
                         # print(e)
 
+                bogies = self.get_available_bogies(bogie_row)   
+            
             except exceptions.StaleElementReferenceException as e:
-                bogies = WebDriverWait(bogie_row, 10).until(EC.presence_of_all_elements_located((
-                    By.CSS_SELECTOR,
-                    'button'
-                )))
+                bogies = self.get_available_bogies(bogie_row)
+                print("Stale Element")
                 bogie = bogies[i]
                 print(bogie.text)
                 self.execute_script("arguments[0].click();", bogie)
             except Exception as e:
-                print("Bogie changing error occured")
+                print("This bogie doesn't have any available tickets")
                 # print(e)
                 
         # if(selected_seats < const.NO_OF_TICKETS):

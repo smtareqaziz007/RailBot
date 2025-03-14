@@ -38,7 +38,7 @@ while True:
         bot.select_date_and_class(const.DATE)
         bot.search_trains()
         booking_page_url = bot.get_url()
-        bot.change_wait(5)
+        bot.change_wait(3)
 
         # use this if you want to halt execution until a certain time
         # bot.wait_until_time(minute=59, second=58)
@@ -69,7 +69,7 @@ while True:
 
                 # uncomment to use notification if you aren't near your pc
                 # notify.noise()
-                notify.voice()
+                # notify.voice()
                 if const.RECEIVER_EMAIL:
                     notify.mail()
 

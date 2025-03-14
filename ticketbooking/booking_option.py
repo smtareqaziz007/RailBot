@@ -87,12 +87,6 @@ class BookingOption:
         return optimal_options
 
     def click_book_now_button(self, class_options):
-        # tm = datetime.now()
-        # if tm.hour == 7:
-        #     while True:
-        #         # t = datetime.now()
-        #         if tm.minute == 55:
-        #             break
         class_name = class_options[0].find_element(
             By.CLASS_NAME, "seat-class-name")
         print(class_name.text)
